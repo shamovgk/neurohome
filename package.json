@@ -1,0 +1,29 @@
+{
+  "name": "neurohome",
+  "version": "1.0.0",
+  "description": "IoT система автоматизации ухода за растениями",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "docker-compose -f docker-compose.dev.yml up",
+    "dev:detach": "docker-compose -f docker-compose.dev.yml up -d",
+    "stop": "docker-compose -f docker-compose.dev.yml down",
+    "logs": "docker-compose -f docker-compose.dev.yml logs -f",
+    "clean": "docker-compose -f docker-compose.dev.yml down -v",
+    "mobile": "npm run start --workspace=packages/mobile",
+    "backend": "npm run dev --workspace=packages/backend",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=9.0.0"
+  }
+}

@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+package-lock.json
+yarn.lock
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.sublime-*
+
+# Docker
+docker-compose.override.yml
+
+# Build
+build/
+dist/
+*.tgz
+
+# React Native
+packages/mobile/.expo/
+packages/mobile/ios/
+packages/mobile/android/
+
+# ESP32
+packages/esp32-firmware/.pio/
+packages/esp32-firmware/.vscode/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.bak
