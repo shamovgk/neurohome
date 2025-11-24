@@ -1,31 +1,36 @@
 import { apiClient } from './client';
 import { LoginRequest, RegisterRequest, AuthResponse, ApiResponse } from '@/types/api';
 import * as SecureStore from 'expo-secure-store';
+import { API_ENDPOINTS } from '@/constants/config';
 
 export const authService = {
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     const response = await apiClient.post<ApiResponse<AuthResponse>>(
-      '/api/v1/auth/login',
+      API_ENDPOINTS.LOGIN,
       credentials
     );
     
-    // Сохраняем токены
-    await SecureStore.setItemAsync('accessToken', response.data.data.accessToken);
-    await SecureStore.setItemAsync('refreshToken', response.data.data.refreshToken);
+    const data = response.data.data;
     
-    return response.data.data;
+    // Сохраняем токены
+    await SecureStore.setItemAsync('accessToken', data.accessToken);
+    await SecureStore.setItemAsync('refreshToken', data.refreshToken);
+    
+    return data;
   },
 
   async register(data: RegisterRequest): Promise<AuthResponse> {
     const response = await apiClient.post<ApiResponse<AuthResponse>>(
-      '/api/v1/auth/register',
+      API_ENDPOINTS.REGISTER,
       data
     );
     
-    await SecureStore.setItemAsync('accessToken', response.data.data.accessToken);
-    await SecureStore.setItemAsync('refreshToken', response.data.data.refreshToken);
+    const authData = response.data.data;
     
-    return response.data.data;
+    await SecureStore.setItemAsync('accessToken', authData.accessToken);
+    await SecureStore.setItemAsync('refreshToken', authData.refreshToken);
+    
+    return authData;
   },
 
   async logout(): Promise<void> {

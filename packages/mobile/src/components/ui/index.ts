@@ -4,3 +4,4 @@ export { Card } from './Card';
 export { DeviceCard } from './DeviceCard';
 export { ControlSwitch } from './ControlSwitch';
 export { SliderControl } from './SliderControl';
+export { AddDeviceModal } from './AddDeviceModal';

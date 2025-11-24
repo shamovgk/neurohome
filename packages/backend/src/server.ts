@@ -1,4 +1,4 @@
-import express, { Application } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import http from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -45,13 +45,15 @@ class Server {
   }
 
   private setupRoutes(): void {
+    // API routes
     this.app.use('/api/v1', routes);
 
-    // 404 handler
-    this.app.use('*', (req, res) => {
+    // 404 handler - ИСПРАВЛЕНО
+    this.app.use((req: Request, res: Response) => {
       res.status(404).json({
         success: false,
         error: 'Route not found',
+        path: req.path,
       });
     });
   }

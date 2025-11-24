@@ -6,56 +6,19 @@ import {
   FlatList,
   RefreshControl,
   ActivityIndicator,
+  Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setDevices, setSelectedDevice } from '@/store/slices/devicesSlice';
-import { DeviceCard } from '@/components/ui';
+import { DeviceCard, Button } from '@/components/ui';
+import { AddDeviceModal } from '@/components/ui/AddDeviceModal';
+import { deviceService } from '@/services/api';
 import { COLORS, SPACING, FONT_SIZES } from '@/constants/theme';
 import { Device } from '@/types/device';
-
-// Временные моковые данные (позже заменим на API)
-const MOCK_DEVICES: Device[] = [
-  {
-    id: 'device-1',
-    name: 'Фикус в гостиной',
-    type: 'plant',
-    status: 'online',
-    lastSeen: new Date().toISOString(),
-    location: 'Гостиная',
-    plantProfile: {
-      id: 'plant-1',
-      name: 'Фикус Бенджамина',
-      species: 'Ficus benjamina',
-      thresholds: {
-        soilMoisture: { min: 40, max: 60 },
-        temperature: { min: 18, max: 25 },
-        airHumidity: { min: 50, max: 70 },
-        light: { min: 8000, max: 15000 },
-      },
-    },
-  },
-  {
-    id: 'device-2',
-    name: 'Суккуленты на балконе',
-    type: 'plant',
-    status: 'online',
-    lastSeen: new Date(Date.now() - 300000).toISOString(),
-    location: 'Балкон',
-    plantProfile: {
-      id: 'plant-2',
-      name: 'Эхеверия',
-      species: 'Echeveria',
-      thresholds: {
-        soilMoisture: { min: 20, max: 40 },
-        temperature: { min: 15, max: 30 },
-        airHumidity: { min: 30, max: 50 },
-        light: { min: 12000, max: 20000 },
-      },
-    },
-  },
-];
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -63,6 +26,7 @@ export default function HomeScreen() {
   const devices = useAppSelector((state) => state.devices.devices);
   const [isLoading, setIsLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
     loadDevices();
@@ -71,17 +35,15 @@ export default function HomeScreen() {
   const loadDevices = async () => {
     setIsLoading(true);
     try {
-      // TODO: Заменить на реальный API запрос
-      // const response = await apiClient.get('/api/v1/devices');
-      // dispatch(setDevices(response.data.data));
-      
-      // Пока используем моковые данные
-      setTimeout(() => {
-        dispatch(setDevices(MOCK_DEVICES));
-        setIsLoading(false);
-      }, 500);
-    } catch (error) {
+      const fetchedDevices = await deviceService.getDevices();
+      dispatch(setDevices(fetchedDevices));
+    } catch (error: any) {
       console.error('Error loading devices:', error);
+      Alert.alert(
+        'Ошибка загрузки',
+        error.response?.data?.error || 'Не удалось загрузить устройства'
+      );
+    } finally {
       setIsLoading(false);
     }
   };
@@ -97,6 +59,30 @@ export default function HomeScreen() {
     router.push('/(tabs)/monitoring');
   };
 
+  const handleAddDevice = async (name: string, location: string) => {
+    try {
+      setIsLoading(true);
+      const newDevice = await deviceService.createDevice({
+        name,
+        type: 'plant',
+        location,
+      });
+      
+      // Обновляем список устройств
+      await loadDevices();
+      
+      setShowAddModal(false);
+      Alert.alert('Успешно', `Устройство "${name}" создано`);
+    } catch (error: any) {
+      Alert.alert(
+        'Ошибка',
+        error.response?.data?.error || 'Не удалось создать устройство'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const renderDevice = ({ item }: { item: Device }) => (
     <DeviceCard device={item} onPress={() => handleDevicePress(item)} />
   );
@@ -105,17 +91,33 @@ export default function HomeScreen() {
     <View style={styles.header}>
       <View>
         <Text style={styles.greeting}>Привет, {user?.name}! 👋</Text>
-        <Text style={styles.subtitle}>Ваши растения сегодня</Text>
+        <Text style={styles.subtitle}>
+          {devices.length === 0
+            ? 'Добавьте первое устройство'
+            : `Устройств: ${devices.length}`}
+        </Text>
       </View>
+      <TouchableOpacity 
+        onPress={() => setShowAddModal(true)} 
+        style={styles.addButton}
+      >
+        <Ionicons name="add-circle" size={32} color={COLORS.primary} />
+      </TouchableOpacity>
     </View>
   );
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
+      <Ionicons name="leaf-outline" size={64} color={COLORS.textSecondary} />
       <Text style={styles.emptyTitle}>Нет устройств</Text>
       <Text style={styles.emptyText}>
-        Добавьте ваше первое устройство ESP32, чтобы начать мониторинг растений
+        Нажмите на "+" чтобы добавить ваше первое устройство ESP32
       </Text>
+      <Button
+        title="Добавить устройство"
+        onPress={() => setShowAddModal(true)}
+        style={styles.addDeviceButton}
+      />
     </View>
   );
 
@@ -123,6 +125,7 @@ export default function HomeScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={COLORS.primary} />
+        <Text style={styles.loadingText}>Загрузка устройств...</Text>
       </View>
     );
   }
@@ -144,6 +147,13 @@ export default function HomeScreen() {
           />
         }
       />
+
+      <AddDeviceModal
+        visible={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSubmit={handleAddDevice}
+        loading={isLoading}
+      />
     </View>
   );
 }
@@ -159,10 +169,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: COLORS.background,
   },
+  loadingText: {
+    marginTop: SPACING.md,
+    fontSize: FONT_SIZES.md,
+    color: COLORS.textSecondary,
+  },
   listContent: {
     padding: SPACING.md,
+    flexGrow: 1,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: SPACING.lg,
   },
   greeting: {
@@ -175,21 +194,31 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.md,
     color: COLORS.textSecondary,
   },
+  addButton: {
+    padding: SPACING.xs,
+  },
   emptyContainer: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: SPACING.xl * 2,
+    paddingHorizontal: SPACING.xl,
   },
   emptyTitle: {
     fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
     color: COLORS.text,
+    marginTop: SPACING.md,
     marginBottom: SPACING.sm,
   },
   emptyText: {
     fontSize: FONT_SIZES.md,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    paddingHorizontal: SPACING.xl,
+    marginBottom: SPACING.xl,
+  },
+  addDeviceButton: {
+    marginTop: SPACING.md,
+    minWidth: 200,
   },
 });

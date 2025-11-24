@@ -4,22 +4,29 @@ import { SensorData } from '@/types/sensor';
 import { store } from '@/store/store';
 import { setCurrentData } from '@/store/slices/sensorsSlice';
 import { updateDeviceStatus } from '@/store/slices/devicesSlice';
+import * as SecureStore from 'expo-secure-store';
 
 class SocketService {
   private socket: Socket | null = null;
   private isConnected = false;
 
-  connect(deviceId: string) {
+  async connect(deviceId: string) {
     if (this.socket?.connected) {
       console.log('Socket already connected');
       return;
     }
 
+    // Получаем токен для аутентификации
+    const token = await SecureStore.getItemAsync('accessToken');
+
     this.socket = io(API_CONFIG.WS_URL, {
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+      auth: {
+        token, // Отправляем токен для аутентификации
+      },
     });
 
     this.setupListeners(deviceId);
@@ -49,7 +56,7 @@ class SocketService {
       store.dispatch(updateDeviceStatus(data));
     });
 
-    // Уведомления о событиях (критические пороги, автополив и т.д.)
+    // Уведомления о событиях
     this.socket.on('device-event', (event: {
       deviceId: string;
       type: string;
@@ -57,7 +64,7 @@ class SocketService {
       timestamp: string;
     }) => {
       console.log('Device event:', event);
-      // Здесь можно показать уведомление пользователю
+      // TODO: Показать уведомление пользователю
     });
 
     // Отключение
