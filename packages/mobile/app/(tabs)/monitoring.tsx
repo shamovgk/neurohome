@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppSelector } from '@/store/hooks';
 import { SensorCard, SensorGauge } from '@/components/sensors';
 import { socketService } from '@/services/websocket/socketService';
@@ -53,6 +54,7 @@ export default function MonitoringScreen() {
   }
 
   return (
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Text style={styles.deviceName}>{selectedDevice.name}</Text>
@@ -156,10 +158,15 @@ export default function MonitoringScreen() {
         </View>
       )}
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

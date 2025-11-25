@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useAppSelector } from '@/store/hooks';
 import { ControlSwitch, SliderControl } from '@/components/ui';
@@ -136,6 +137,7 @@ export default function ControlsScreen() {
   }
 
   return (
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Text style={styles.deviceName}>{selectedDevice.name}</Text>
@@ -257,10 +259,15 @@ export default function ControlsScreen() {
         </Text>
       </View>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

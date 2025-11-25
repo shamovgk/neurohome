@@ -4,6 +4,7 @@ import { authService } from '@/services/api/authService';
 import { User } from '@/types/api';
 import { useAppDispatch } from '@/store/hooks';
 import { setCredentials, logout as logoutAction } from '@/store/slices/authSlice';
+import { setDevices, setSelectedDevice } from '@/store/slices/devicesSlice';
 
 interface AuthContextType {
   user: User | null;
@@ -51,6 +52,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user: response.user,
         accessToken: response.accessToken,
       }));
+      dispatch(setDevices([]));
+      dispatch(setSelectedDevice(null));
     } catch (error) {
       throw error;
     }
@@ -76,6 +79,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       setIsAuthenticated(false);
       dispatch(logoutAction());
+      dispatch(setDevices([]));
+      dispatch(setSelectedDevice(null));
     } catch (error) {
       console.error('Error logging out:', error);
     }

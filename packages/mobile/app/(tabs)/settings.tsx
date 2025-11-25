@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context'; 
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/features/auth/context/AuthContext';
@@ -62,6 +63,7 @@ export default function SettingsScreen() {
   };
 
   return (
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.profileSection}>
         <View style={styles.avatar}>
@@ -146,10 +148,15 @@ export default function SettingsScreen() {
 
       <Text style={styles.version}>NeuroHome v1.0.0</Text>
     </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

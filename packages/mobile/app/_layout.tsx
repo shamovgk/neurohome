@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { Provider } from 'react-redux';
 import { store } from '@/store/store';
 import { AuthProvider } from '@/features/auth/context/AuthContext';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -24,13 +25,15 @@ export default function RootLayout() {
   }
 
   return (
-    <Provider store={store}>
-      <AuthProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-        </Stack>
-      </AuthProvider>
-    </Provider>
+    <SafeAreaProvider>
+      <Provider store={store}>
+        <AuthProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        </AuthProvider>
+      </Provider>
+    </SafeAreaProvider>
   );
 }
