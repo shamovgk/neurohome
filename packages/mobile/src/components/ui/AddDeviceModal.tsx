@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 interface AddDeviceModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (name: string, location: string) => void;
+  onSubmit: (name: string, location: string) => Promise<string>; // Возвращает deviceId
   loading?: boolean;
 }
 
@@ -29,18 +29,23 @@ export const AddDeviceModal: React.FC<AddDeviceModalProps> = ({
   const [location, setLocation] = useState('');
   const [error, setError] = useState('');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) {
       setError('Название устройства обязательно');
       return;
     }
 
-    onSubmit(name.trim(), location.trim() || 'Не указано');
-    
-    // Очищаем форму
-    setName('');
-    setLocation('');
-    setError('');
+    try {
+      await onSubmit(name.trim(), location.trim() || 'Не указано');
+      
+      // Очищаем форму
+      setName('');
+      setLocation('');
+      setError('');
+    } catch (err) {
+      // Ошибка уже обработана в родительском компоненте
+      console.error('Submit error:', err);
+    }
   };
 
   const handleClose = () => {

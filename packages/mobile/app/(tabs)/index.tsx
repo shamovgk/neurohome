@@ -20,6 +20,7 @@ import { AddDeviceModal } from '@/components/ui/AddDeviceModal';
 import { deviceService } from '@/services/api';
 import { COLORS, SPACING, FONT_SIZES } from '@/constants/theme';
 import { Device } from '@/types/device';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -60,29 +61,55 @@ export default function HomeScreen() {
     router.push('/(tabs)/monitoring');
   };
 
-  const handleAddDevice = async (name: string, location: string) => {
-    try {
-      setIsLoading(true);
-      const newDevice = await deviceService.createDevice({
-        name,
-        type: 'plant',
-        location,
-      });
-      
-      // Обновляем список устройств
-      await loadDevices();
-      
-      setShowAddModal(false);
-      Alert.alert('Успешно', `Устройство "${name}" создано`);
-    } catch (error: any) {
-      Alert.alert(
-        'Ошибка',
-        error.response?.data?.error || 'Не удалось создать устройство'
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const handleAddDevice = async (name: string, location: string): Promise<string> => {
+  try {
+    setIsLoading(true);
+    const newDevice = await deviceService.createDevice({
+      name,
+      type: 'plant',
+      location,
+    });
+    
+    // Обновляем список устройств
+    await loadDevices();
+    
+    setShowAddModal(false);
+    
+    // Показываем инструкцию по настройке ESP32
+    Alert.alert(
+      'Устройство создано',
+      `Устройство "${name}" успешно создано!\n\n` +
+      `ID устройства: ${newDevice.id}\n\n` +
+      `Для подключения ESP32:\n` +
+      `1. Скопируйте ID устройства\n` +
+      `2. Настройте WiFi в коде ESP32\n` +
+      `3. Вставьте ID устройства в config.h\n` +
+      `4. Загрузите прошивку на ESP32`,
+      [
+        {
+          text: 'Скопировать ID',
+          onPress: () => {
+            console.log('Device ID:', newDevice.id);
+            Clipboard.setString(newDevice.id);
+            Alert.alert('Скопировано', 'Device ID скопирован в буфер обмена');
+          }
+        },
+        { text: 'OK' }
+      ]
+    );
+    
+    return newDevice.id;
+  } catch (error: any) {
+    Alert.alert(
+      'Ошибка',
+      error.response?.data?.error || 'Не удалось создать устройство'
+    );
+    throw error;
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const renderDevice = ({ item }: { item: Device }) => (
     <DeviceCard device={item} onPress={() => handleDevicePress(item)} />
