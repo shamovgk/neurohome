@@ -4,26 +4,36 @@
   "description": "IoT система автоматизации ухода за растениями",
   "private": true,
   "workspaces": [
-    "packages/*",
-    "shared"
+    "packages/*"
   ],
   "scripts": {
-    "dev": "docker-compose -f docker-compose.dev.yml up",
-    "dev:detach": "docker-compose -f docker-compose.dev.yml up -d",
-    "stop": "docker-compose -f docker-compose.dev.yml down",
-    "logs": "docker-compose -f docker-compose.dev.yml logs -f",
-    "clean": "docker-compose -f docker-compose.dev.yml down -v",
-    "mobile": "npm run start --workspace=packages/mobile",
-    "backend": "npm run dev --workspace=packages/backend",
-    "test": "npm run test --workspaces",
-    "lint": "npm run lint --workspaces",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\""
+    "dev": "npm run dev:docker",
+    "dev:docker": "docker-compose -f docker-compose.dev.yml up",
+    "dev:docker:detach": "docker-compose -f docker-compose.dev.yml up -d",
+    "dev:backend": "npm run dev --workspace=packages/backend",
+    "dev:mobile": "npm run start --workspace=packages/mobile",
+    "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev:mobile\"",
+    "docker:stop": "docker-compose -f docker-compose.dev.yml down",
+    "docker:clean": "docker-compose -f docker-compose.dev.yml down -v",
+    "docker:logs": "docker-compose -f docker-compose.dev.yml logs -f",
+    "docker:logs:backend": "docker-compose -f docker-compose.dev.yml logs -f backend",
+    "docker:restart": "npm run docker:stop && npm run dev:docker",
+    "infra:up": "docker-compose -f docker-compose.infra.yml up -d",
+    "infra:down": "docker-compose -f docker-compose.infra.yml down",
+    "infra:restart": "npm run infra:down && npm run infra:up",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
+    "seed:demo": "npm run seed:demo --workspace=packages/backend",
+    "demo:simulator": "npm run demo:simulator --workspace=packages/backend"
   },
   "devDependencies": {
-    "prettier": "^3.1.0"
+    "concurrently": "^8.2.2",
+    "prettier": "^3.6.2"
   },
   "engines": {
     "node": ">=20.0.0",
-    "npm": ">=9.0.0"
+    "npm": ">=10.0.0"
   }
 }

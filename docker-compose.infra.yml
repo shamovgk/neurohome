@@ -1,50 +1,6 @@
 version: '3.8'
 
 services:
-  backend:
-    build:
-      context: ./packages/backend
-      dockerfile: ../../docker/backend.Dockerfile
-      target: development
-    container_name: neurohome-backend
-    volumes:
-      - ./packages/backend:/app
-      - /app/node_modules
-      - backend_dist:/app/dist
-    ports:
-      - "3000:3000"
-      - "9229:9229"
-    environment:
-      NODE_ENV: development
-      PORT: 3000
-      HOST: 0.0.0.0
-      DATABASE_URL: postgres://dev:dev123@postgres:5432/neurohome_dev
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: neurohome_dev
-      DB_USER: dev
-      DB_PASSWORD: dev123
-      MONGODB_URL: mongodb://dev:dev123@mongodb:27017/neurohome_dev?authSource=admin
-      MONGODB_DB_NAME: neurohome_dev
-      MQTT_BROKER_URL: mqtt://mosquitto:1883
-      MQTT_CLIENT_ID: neurohome-backend
-      JWT_SECRET: dev_secret_change_in_production_2024
-      JWT_EXPIRES_IN: 7d
-      JWT_REFRESH_EXPIRES_IN: 30d
-      CORS_ORIGIN: http://localhost:19006,http://localhost:19000,http://localhost:8081
-      LOG_LEVEL: debug
-    depends_on:
-      postgres:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-      mosquitto:
-        condition: service_started
-    command: npm run dev
-    restart: unless-stopped
-    networks:
-      - neurohome-network
-
   mosquitto:
     image: eclipse-mosquitto:2.0
     container_name: neurohome-mosquitto
@@ -108,10 +64,9 @@ services:
       - "5050:80"
     depends_on:
       - postgres
+    restart: unless-stopped
     networks:
       - neurohome-network
-    profiles:
-      - tools
 
   mongo-express:
     image: mongo-express:latest
@@ -125,10 +80,9 @@ services:
       - "8081:8081"
     depends_on:
       - mongodb
+    restart: unless-stopped
     networks:
       - neurohome-network
-    profiles:
-      - tools
 
 volumes:
   postgres_data:
@@ -137,7 +91,6 @@ volumes:
     name: neurohome-mongodb-data
   mosquitto_data:
     name: neurohome-mosquitto-data
-  backend_dist:
 
 networks:
   neurohome-network:

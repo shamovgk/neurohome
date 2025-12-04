@@ -20,7 +20,6 @@ import { AddDeviceModal } from '@/components/ui/AddDeviceModal';
 import { deviceService } from '@/services/api';
 import { COLORS, SPACING, FONT_SIZES } from '@/constants/theme';
 import { Device } from '@/types/device';
-import Clipboard from '@react-native-clipboard/clipboard';
 
 export default function HomeScreen() {
   const { user } = useAuth();
@@ -90,7 +89,6 @@ const handleAddDevice = async (name: string, location: string): Promise<string> 
           text: 'Скопировать ID',
           onPress: () => {
             console.log('Device ID:', newDevice.id);
-            Clipboard.setString(newDevice.id);
             Alert.alert('Скопировано', 'Device ID скопирован в буфер обмена');
           }
         },
